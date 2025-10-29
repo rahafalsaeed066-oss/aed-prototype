@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AED Finder Prototype - Amman (Distances & ETA)</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+<style>
+  body { margin:0; font-family: Arial, sans-serif; background: linear-gradient(135deg,#ff6b6b,#ee5a24); color:#222; }
+  header { background:#d63031; color:#fff; padding:14px 10px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+  nav{ display:flex; justify-content:center; gap:14px; margin-top:8px; }
+  nav button{ background:transparent; color:white; border:none; padding:8px 14px; cursor:pointer; border-radius:6px; }
+  nav button.active, nav button:hover{ background:rgba(255,255,255,0.16); }
+  .container{ max-width:1100px; margin:18px auto; padding:10px; }
+  #map{ height:420px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.15); }
+  .status{ display:flex; gap:12px; margin-top:12px; background:rgba(255,255,255,0.94); padding:12px; border-radius:10px; align-items:center; justify-content:space-between; }
+  .status .block{ flex:1; text-align:center; }
+  .heart{ font-size:28px; animation:pulse 2s infinite; }
+  @keyframes pulse{ 0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);} }
+  .controls{ text-align:center; margin-top:12px; }
+  .btn{ background:#e17055; color:#fff; border:none; padding:10px 18px; border-radius:22px; cursor:pointer; margin:6px; }
+  .btn:hover{ background:#d63031; transform:scale(1.03); }
+  .hospital-list{ margin-top:14px; background:rgba(255,255,255,0.95); padding:12px; border-radius:10px; max-height:260px; overflow:auto; }
+  .hospital-item{ padding:10px; border-bottom:1px solid #eee; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .hospital-item:hover{ background:#fff0d6; }
+  .muted{ color:#666; font-size:13px; }
+  .alert{ display:none; margin-top:12px; background:#ff7675; color:#fff; padding:10px; border-radius:8px; text-align:center; }
+  @media (max-width:720px){ #map{ height:320px; } .status{ flex-direction:column; gap:8px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>AED Finder Prototype — Amman</h1>
+  <nav>
+    <button id="nav-home" class="active">Home</button>
+    <button id="nav-map">Map</button>
+    <button id="nav-hospitals">Nearby AEDs</button>
+    <button id="nav-about">About</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div id="home" class="page active">
+    <p class="muted">This prototype shows AED locations, calculates distances & ETA (walking/driving), and simulates heart-rate + ring connection.</p>
+
+    <div id="map"></div>
+
+    <div class="status">
+      <div class="block">
+        <div class="heart">❤️</div>
+        <div>Heart Rate: <strong id="hr-display">72 BPM</strong></div>
+      </div>
+      <div class="block">
+        <div>💍</div>
+        <div>Ring: <strong id="ring-display">Disconnected</strong></div>
+      </div>
+      <div class="block">
+        <div>📍</div>
+        <div>Your Location: <span id="loc-display" class="muted">Unknown</span></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="connect-ring" class="btn">🔗 Connect Ring (simulate)</button>
+      <button id="emergency-call" class="btn">🚨 Confirm & Call Ambulance (simulate)</button>
+    </div>
+
+    <div id="alert-msg" class="alert">Alert! Calling ambulance... (simulated)</div>
+
+    <div class="hospital-list" id="hospital-list">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <div id="map-page" class="page" style="display:none;">
+    <h2 style="color:#fff">Interactive Map</h2>
+    <div id="map2" style="height:400px; border-radius:12px;"></div>
+  </div>
+
+  <div id="hospitals" class="page" style="display:none;">
+    <h2 style="color:#fff">Nearby AEDs (sorted by distance)</h2>
+    <div id="hospital-list2" class="hospital-list"></div>
+  </div>
+
+  <div id="about" class="page" style="display:none;">
+    <h2 style="color:#fff">About</h2>
+    <p class="muted">Prototype only — distances & ETAs are approximate. For production you'd integrate real AED dataset, real device API and emergency-call service.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- Data: fake AED / places (more "villages" / neighborhoods) ---------- */
+const aedLocations = [
+  { id:1, name: "AED - Abdali Mall", lat:31.9474, lng:35.9230 },
+  { id:2, name: "AED - Tla' Al Ali Clinic", lat:31.9530, lng:35.8830 },
+  { id:3, name: "AED - Jabal Amman Center", lat:31.9498, lng:35.9400 },
+  { id:4, name: "AED - Sweifieh Plaza", lat:31.9490, lng:35.8765 },
+  { id:5, name: "AED - Marka Community Ctr", lat:32.0010, lng:36.0380 },
+  { id:6, name: "AED - West Amman Market", lat:31.9605, lng:35.8862 },
+  { id:7, name: "AED - University Campus", lat:31.9522, lng:35.9108 },
+  { id:8, name: "AED - City Hospital", lat:31.9556, lng:35.9235 },
+  { id:9, name: "AED - Zahran Mall", lat:31.9680, lng:35.9115 },
+  { id:10, name: "AED - Community Center C", lat:31.9620, lng:35.9100 }
+];
+
+/* ---------- Utility: Haversine formula for distance in km ---------- */
+function haversineKm(lat1, lon1, lat2, lon2) {
+  function toRad(deg){ return deg * Math.PI / 180; }
+  const R = 6371; // Earth radius km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/* ---------- Map initialization (leaflet) ---------- */
+let map; // main map reference
+function initMap(mapId='map') {
+  // create map only once per container
+  const container = document.getElementById(mapId);
+  if (container._leaflet_id) return; // already inited
+
+  const center = [31.9539, 35.9106]; // Amman center
+  const m = L.map(mapId).setView(center, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(m);
+
+  // basic AED icon (red pin with AED text)
+  const aedIcon = L.divIcon({
+    html: '<div style="background:#d63031;color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;">AED</div>',
+    className: '',
+    iconSize: [40,20],
+    iconAnchor: [20,10]
+  });
+
+  // add AED markers with popups
+  aedLocations.forEach(loc => {
+    const marker = L.marker([loc.lat, loc.lng], { icon: aedIcon }).addTo(m);
+    marker.bindPopup(`<strong>${loc.name}</strong><br>Click for details`);
+    loc._marker = marker; // save marker to the object for later
+  });
+
+  map = m;
+}
+
+/* init both maps (home and map page) */
+initMap('map');
+initMap('map2');
+
+/* ---------- Geolocation & list population ---------- */
+let userPos = null;
+
+function updateUserLocationDisplay(lat, lng) {
+  document.getElementById('loc-display').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+function getUserLocationAndPopulate() {
+  if (!navigator.geolocation) {
+    populateLists(null);
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    updateUserLocationDisplay(userPos.lat, userPos.lng);
+
+    // add/ update user marker on map
+    if (map) {
+      if (!window._userMarker) {
+        window._userMarker = L.marker([userPos.lat, userPos.lng], { title:"You" }).addTo(map);
+        window._userMarker.bindPopup("Your Location");
+      } else {
+        window._userMarker.setLatLng([userPos.lat, userPos.lng]);
+      }
+      map.setView([userPos.lat, userPos.lng], 13);
+    }
+
+    populateLists(userPos);
+  }, err => {
+    console.warn('Location error', err);
+    populateLists(null);
+  }, { enableHighAccuracy:true, timeout:8000 });
+}
+
+/* ---------- Populate & sort lists with distance & ETA ---------- */
+function populateLists(user) {
+  const list1 = document.getElementById('hospital-list');
+  const list2 = document.getElementById('hospital-list2');
+  list1.innerHTML = '';
+  list2.innerHTML = '';
+
+  // compute distance & ETA for each location
+  const enriched = aedLocations.map(loc => {
+    let distKm = null;
+    if (user) distKm = haversineKm(user.lat, user.lng, loc.lat, loc.lng);
+    const distMiles = distKm != null ? distKm * 0.621371 : null;
+    // ETA estimates: walking 5 km/h, driving 40 km/h
+    const walkingMin = distKm != null ? (distKm / 5) * 60 : null;
+    const drivingMin = distKm != null ? (distKm / 40) * 60 : null;
+    return Object.assign({}, loc, { distKm, distMiles, walkingMin, drivingMin });
+  });
+
+  // sort by distance ascending (nulls at end)
+  enriched.sort((a,b) => {
+    if (a.distKm === null) return 1;
+    if (b.distKm === null) return -1;
+    return a.distKm - b.distKm;
+  });
+
+  enriched.forEach(loc => {
+    const distText = loc.distMiles != null ? `${loc.distMiles.toFixed(2)} miles` : 'Distance unavailable';
+    const etaText = loc.walkingMin != null ? `Walk: ${Math.round(loc.walkingMin)} min • Drive: ${Math.round(loc.drivingMin)} min` : '';
+    const item = document.createElement('div');
+    item.className = 'hospital-item';
+    item.innerHTML = `<div>
+                        <strong>${loc.name}</strong><div class="muted">${distText}</div>
+                      </div>
+                      <div style="text-align:right">
+                        <div class="muted" style="font-size:13px">${etaText}</div>
+                        <div style="font-size:12px; margin-top:6px; color:#d63031">Go</div>
+                      </div>`;
+    // click -> fly to and open popup with more info
+    item.addEventListener('click', () => {
+      // show Home tab and fly there
+      document.getElementById('nav-home').click();
+      if (map && loc._marker) {
+        map.flyTo([loc.lat, loc.lng], 16, { duration: 1.6 });
+        loc._marker.openPopup();
+        // update popup content with distances & ETA
+        const popupHtml = `<strong>${loc.name}</strong><br>
+                           ${distText}<br>
+                           ${loc.walkingMin != null ? `Walk: ${Math.round(loc.walkingMin)} min • Drive: ${Math.round(loc.drivingMin)} min` : ''}`;
+        loc._marker.setPopupContent(popupHtml).openPopup();
+      }
+    });
+    list1.appendChild(item.cloneNode(true));
+    list2.appendChild(item);
+  });
+}
+
+/* ---------- Heart rate simulation (same as before) ---------- */
+let hr = 72;
+setInterval(() => {
+  hr += (Math.random()*8 - 4); // small random walk
+  hr = Math.max(45, Math.min(140, hr)); // clamp to reasonable values
+  document.getElementById('hr-display').textContent = Math.round(hr) + ' BPM';
+
+  // auto-check if very high or very low (prototype alert logic)
+  if (hr > 130 || hr < 45) {
+    document.getElementById('alert-msg').textContent = 'Warning: Abnormal heart rate detected (simulated)';
+    document.getElementById('alert-msg').style.display = 'block';
+  } else {
+    document.getElementById('alert-msg').style.display = 'none';
+    document.getElementById('alert-msg').textContent = 'Alert! Calling ambulance... (simulated)';
+  }
+}, 2000);
+
+/* ---------- Buttons: connect ring & emergency ---------- */
+document.getElementById('connect-ring').addEventListener('click', () => {
+  document.getElementById('ring-display').textContent = 'Connected (simulated)';
+  alert('Ring connected (simulated). Heart-rate now comes from simulated sensor.');
+});
+
+document.getElementById('emergency-call').addEventListener('click', () => {
+  if (!userPos) {
+    alert('Enable location to allow calling ambulance (simulated).');
+    return;
+  }
+  document.getElementById('alert-msg').style.display = 'block';
+  setTimeout(() => {
+    alert('Ambulance called (simulated). Displaying nearest AED and estimated time.');
+    // focus on nearest AED
+    const nearest = aedLocations.slice().map(loc => ({...loc, dist: haversineKm(userPos.lat,userPos.lng,loc.lat,loc.lng)}))
+      .sort((a,b)=>a.dist-b.dist)[0];
+    if (nearest && nearest._marker && map) {
+      map.flyTo([nearest.lat, nearest.lng], 15, { duration:1.4 });
+      const distKm = haversineKm(userPos.lat,userPos.lng,nearest.lat,nearest.lng);
+      const distMiles = distKm * 0.621371;
+      const walkingMin = (distKm / 5) * 60;
+      nearest._marker.setPopupContent(`<strong>${nearest.name}</strong><br>${distMiles.toFixed(2)} miles<br>Walk: ${Math.round(walkingMin)} min`).openPopup();
+    }
+  }, 900);
+});
+
+/* ---------- Navigation (simple tab behavior) ---------- */
+const pages = document.querySelectorAll('.page');
+const navButtons = document.querySelectorAll('nav button');
+navButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    navButtons.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    pages.forEach(p => p.style.display = 'none');
+    const id = btn.id.replace('nav-','');
+    document.getElementById(id).style.display = 'block';
+    // special inits
+    if (id === 'map-page') {
+      setTimeout(()=>{ if (map) map.invalidateSize(); }, 200);
+    }
+    if (id === 'hospitals') populateLists(userPos);
+  });
+});
+
+/* ---------- start: get user location & populate ---------- */
+getUserLocationAndPopulate();
+
+/* try to refresh location every 30s (prototype) */
+setInterval(getUserLocationAndPopulate, 30000);
+</script>
+</body>
+</html>
+
+
+
