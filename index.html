@@ -1,357 +1,799 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>AED & Rescue Hub — Amman</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glow & Co — Luxury Relaxation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+:root {
+  --rose: #C2185B;
+  --rose-light: #F48FB1;
+  --rose-pale: #FCE4EC;
+  --rose-deep: #880E4F;
+  --cream: #FDF8F5;
+  --warm: #F5EDE8;
+  --text: #2C1810;
+  --text-muted: #7A5C52;
+  --gold: #C9A96E;
+  --white: #FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden}
 
-.logo-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:70px;background:rgba(253,248,245,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(194,24,91,0.1)}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;letter-spacing:0.12em;color:var(--rose-deep);text-decoration:none}
+.nav-logo span{color:var(--gold)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);transition:color 0.3s}
+.nav-links a:hover{color:var(--rose)}
+.nav-cart{position:relative;cursor:pointer;background:var(--rose);color:white;border:none;padding:0.5rem 1.2rem;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.3s}
+.nav-cart:hover{background:var(--rose-deep)}
+.cart-count{position:absolute;top:-6px;right:-6px;background:var(--gold);color:white;width:18px;height:18px;border-radius:50%;font-size:0.65rem;display:flex;align-items:center;justify-content:center}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{width:24px;height:1.5px;background:var(--rose-deep);transition:all 0.3s}
+.mobile-menu{display:none;position:fixed;top:70px;left:0;right:0;background:var(--cream);border-bottom:1px solid rgba(194,24,91,0.1);padding:1.5rem 5%;z-index:99;flex-direction:column;gap:1rem}
+.mobile-menu.open{display:flex}
+.mobile-menu a{text-decoration:none;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding:0.5rem 0;border-bottom:1px solid var(--rose-pale)}
+.mobile-menu a:hover{color:var(--rose)}
+
+/* PAGES */
+.page{display:none;min-height:100vh;padding-top:70px}
+.page.active{display:block}
+
+/* ── HOME ── */
+#home{display:none}
+#home.active{display:block}
+
+.hero{min-height:calc(100vh - 70px);display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:6% 8% 6% 8%;background:var(--cream)}
+.hero-eyebrow{font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:1.5rem}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,5vw,5rem);font-weight:300;line-height:1.1;color:var(--rose-deep);margin-bottom:1.5rem}
+.hero-title em{font-style:italic;color:var(--rose)}
+.hero-sub{font-size:0.9rem;line-height:1.8;color:var(--text-muted);max-width:380px;margin-bottom:2.5rem}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.btn-primary{background:var(--rose);color:white;border:none;padding:0.9rem 2.2rem;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.btn-primary:hover{background:var(--rose-deep);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--rose);border:1px solid var(--rose);padding:0.9rem 2.2rem;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.btn-outline:hover{background:var(--rose-pale)}
+.hero-right{background:linear-gradient(135deg,#F8E8EE 0%,#FCE4EC 50%,#F3D5E0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.hero-visual{width:75%;max-width:420px;aspect-ratio:3/4;background:white;box-shadow:0 30px 80px rgba(194,24,91,0.15);display:flex;align-items:center;justify-content:center;position:relative}
+.hero-visual::before{content:'';position:absolute;top:-20px;left:-20px;right:20px;bottom:20px;border:1px solid rgba(194,24,91,0.2)}
+.hero-visual-inner{text-align:center;padding:2rem}
+.hero-icon{font-size:5rem;margin-bottom:1rem;line-height:1}
+.hero-visual h3{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;color:var(--rose-deep);margin-bottom:0.5rem}
+.hero-visual p{font-size:0.78rem;color:var(--text-muted);letter-spacing:0.05em}
+.hero-float{position:absolute;background:white;padding:1rem 1.5rem;box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+.hero-float-1{bottom:15%;left:5%;font-size:0.75rem}
+.hero-float-1 strong{display:block;font-size:1.1rem;color:var(--rose);font-family:'Cormorant Garamond',serif}
+.hero-float-2{top:20%;right:5%;font-size:0.75rem;text-align:center}
+.hero-float-2 strong{display:block;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold)}
+
+/* FEATURES STRIP */
+.features-strip{background:var(--rose-deep);color:white;padding:1.2rem 5%;display:flex;justify-content:center;gap:3rem;flex-wrap:wrap}
+.feature-item{display:flex;align-items:center;gap:0.6rem;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;opacity:0.9}
+
+/* CATEGORIES */
+.section{padding:5rem 5%}
+.section-header{text-align:center;margin-bottom:3.5rem}
+.section-eyebrow{font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.2rem);font-weight:300;color:var(--rose-deep)}
+.section-title em{font-style:italic;color:var(--rose)}
+
+.categories-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(194,24,91,0.1)}
+.cat-card{background:var(--cream);padding:3rem 1.5rem;text-align:center;cursor:pointer;transition:all 0.4s;position:relative;overflow:hidden}
+.cat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--rose);transform:scaleX(0);transition:transform 0.4s}
+.cat-card:hover::before{transform:scaleX(1)}
+.cat-card:hover{background:white;transform:translateY(-4px)}
+.cat-icon{font-size:2.5rem;margin-bottom:1rem}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;color:var(--rose-deep);margin-bottom:0.4rem}
+.cat-count{font-size:0.72rem;color:var(--text-muted);letter-spacing:0.1em}
+
+/* FEATURED PRODUCTS */
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2rem}
+.product-card{background:white;position:relative;cursor:pointer;transition:box-shadow 0.4s;overflow:hidden}
+.product-card:hover{box-shadow:0 20px 60px rgba(194,24,91,0.12)}
+.product-img{height:280px;background:linear-gradient(135deg,#FCE4EC,#F8E8EE);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.product-img-icon{font-size:4rem;transition:transform 0.4s}
+.product-card:hover .product-img-icon{transform:scale(1.1)}
+.product-badge{position:absolute;top:12px;left:12px;background:var(--rose);color:white;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.3rem 0.7rem}
+.product-badge.new{background:var(--gold)}
+.product-info{padding:1.2rem}
+.product-cat{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:0.3rem}
+.product-name{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;color:var(--rose-deep);margin-bottom:0.5rem}
+.product-desc{font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem}
+.product-footer{display:flex;align-items:center;justify-content:space-between}
+.product-price{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--rose)}
+.product-price span{font-size:0.75rem;font-family:'Jost',sans-serif;color:var(--text-muted)}
+.add-btn{background:var(--rose-pale);color:var(--rose);border:none;padding:0.5rem 1rem;font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.add-btn:hover{background:var(--rose);color:white}
+
+/* BESTSELLER BANNER */
+.bestseller-banner{background:linear-gradient(135deg,var(--rose-deep),var(--rose));padding:5rem 8%;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.bs-text h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,4vw,3.5rem);font-weight:300;color:white;line-height:1.2;margin-bottom:1rem}
+.bs-text h2 em{font-style:italic}
+.bs-text p{color:rgba(255,255,255,0.8);font-size:0.88rem;line-height:1.8;margin-bottom:2rem}
+.btn-white{background:white;color:var(--rose);border:none;padding:0.9rem 2.2rem;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.btn-white:hover{background:var(--cream)}
+.bs-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.bs-stat{background:rgba(255,255,255,0.1);padding:1.5rem;border:1px solid rgba(255,255,255,0.2);text-align:center}
+.bs-stat strong{display:block;font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:white}
+.bs-stat span{font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7)}
+
+/* TESTIMONIALS */
+.testimonials{background:var(--warm);padding:5rem 5%}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+.testi-card{background:white;padding:2rem;position:relative}
+.testi-card::before{content:'"';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--rose-pale);position:absolute;top:-10px;left:1.5rem;line-height:1}
+.testi-text{font-size:0.88rem;line-height:1.8;color:var(--text-muted);margin-bottom:1.2rem;margin-top:1.5rem}
+.testi-author{font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--rose-deep);font-weight:500}
+.testi-stars{color:var(--gold);font-size:0.8rem;margin-bottom:0.5rem;letter-spacing:2px}
+
+/* FOOTER */
+footer{background:var(--rose-deep);color:white;padding:4rem 5% 2rem}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
+.footer-brand{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;letter-spacing:0.1em;color:white;margin-bottom:1rem}
+.footer-brand span{color:var(--gold)}
+.footer-tagline{font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7}
+.footer-col h4{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+.footer-col ul{list-style:none}
+.footer-col li{margin-bottom:0.6rem}
+.footer-col a{text-decoration:none;font-size:0.82rem;color:rgba(255,255,255,0.6);transition:color 0.3s;cursor:pointer}
+.footer-col a:hover{color:white}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:rgba(255,255,255,0.4)}
+
+/* ── SHOP PAGE ── */
+#shop{display:none}
+#shop.active{display:block}
+.shop-hero{background:linear-gradient(135deg,var(--rose-pale),var(--warm));padding:4rem 5% 3rem;text-align:center}
+.shop-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:300;color:var(--rose-deep);margin-bottom:0.5rem}
+.shop-hero p{color:var(--text-muted);font-size:0.88rem;letter-spacing:0.05em}
+.shop-controls{padding:1.5rem 5%;background:white;border-bottom:1px solid var(--rose-pale);display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:space-between}
+.filter-group{display:flex;gap:0.6rem;flex-wrap:wrap}
+.filter-btn{background:transparent;border:1px solid rgba(194,24,91,0.2);color:var(--text-muted);padding:0.4rem 1rem;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.filter-btn:hover,.filter-btn.active{background:var(--rose);color:white;border-color:var(--rose)}
+.sort-select{border:1px solid rgba(194,24,91,0.2);padding:0.4rem 0.8rem;font-family:'Jost',sans-serif;font-size:0.72rem;color:var(--text-muted);background:white;cursor:pointer}
+.shop-grid{padding:3rem 5%;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.5rem}
+
+/* ── PRODUCT DETAIL ── */
+#product-detail{display:none}
+#product-detail.active{display:block}
+.detail-wrap{padding:3rem 5%;display:grid;grid-template-columns:1fr 1fr;gap:5rem;max-width:1100px;margin:0 auto}
+.detail-img{background:linear-gradient(135deg,#FCE4EC,#F8E8EE);aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:8rem;position:relative}
+.detail-img::after{content:'';position:absolute;top:15px;left:15px;right:-15px;bottom:-15px;border:1px solid rgba(194,24,91,0.15);z-index:-1}
+.detail-info{padding:1rem 0}
+.detail-cat{font-size:0.68rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--rose-deep);line-height:1.2;margin-bottom:1rem}
+.detail-price{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--rose);margin-bottom:1.5rem}
+.detail-price span{font-family:'Jost',sans-serif;font-size:0.8rem;color:var(--text-muted)}
+.detail-desc{font-size:0.88rem;line-height:1.9;color:var(--text-muted);margin-bottom:2rem;border-left:2px solid var(--rose-light);padding-left:1rem}
+.qty-wrap{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.qty-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)}
+.qty-control{display:flex;align-items:center;border:1px solid rgba(194,24,91,0.2)}
+.qty-btn{width:36px;height:36px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--rose);transition:background 0.2s}
+.qty-btn:hover{background:var(--rose-pale)}
+.qty-num{width:36px;text-align:center;font-size:0.88rem}
+.detail-add{width:100%;background:var(--rose);color:white;border:none;padding:1.1rem;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:background 0.3s;margin-bottom:0.8rem}
+.detail-add:hover{background:var(--rose-deep)}
+.detail-back{background:transparent;color:var(--rose);border:1px solid var(--rose);padding:0.8rem;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;width:100%;transition:all 0.3s}
+.detail-back:hover{background:var(--rose-pale)}
+.detail-tags{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1.5rem}
+.detail-tag{background:var(--rose-pale);color:var(--rose);font-size:0.68rem;padding:0.3rem 0.8rem;letter-spacing:0.1em;text-transform:uppercase}
+
+/* ── CART PAGE ── */
+#cart{display:none}
+#cart.active{display:block}
+.cart-wrap{padding:3rem 5%;max-width:900px;margin:0 auto}
+.cart-title{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:300;color:var(--rose-deep);margin-bottom:2rem}
+.cart-empty{text-align:center;padding:4rem;color:var(--text-muted)}
+.cart-empty h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--rose-deep);margin-bottom:0.8rem}
+.cart-item{display:grid;grid-template-columns:80px 1fr auto;gap:1.2rem;align-items:center;padding:1.2rem 0;border-bottom:1px solid var(--rose-pale)}
+.cart-item-img{background:linear-gradient(135deg,#FCE4EC,#F8E8EE);height:80px;display:flex;align-items:center;justify-content:center;font-size:2rem}
+.cart-item-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--rose-deep);margin-bottom:0.2rem}
+.cart-item-cat{font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold)}
+.cart-item-price{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--rose)}
+.cart-item-controls{display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem}
+.cart-remove{background:none;border:none;color:var(--text-muted);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;text-decoration:underline}
+.cart-summary{background:var(--warm);padding:2rem;margin-top:2rem}
+.cart-summary h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:300;color:var(--rose-deep);margin-bottom:1.2rem}
+.summary-row{display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-muted);margin-bottom:0.6rem}
+.summary-total{display:flex;justify-content:space-between;font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--rose-deep);border-top:1px solid rgba(194,24,91,0.2);padding-top:1rem;margin-top:0.5rem}
+.checkout-btn{width:100%;background:var(--rose);color:white;border:none;padding:1.1rem;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;margin-top:1.2rem;transition:background 0.3s}
+.checkout-btn:hover{background:var(--rose-deep)}
+
+/* ── ABOUT PAGE ── */
+#about{display:none}
+#about.active{display:block}
+.about-hero{background:var(--rose-deep);padding:5rem 8%;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.about-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:300;color:white;line-height:1.2;margin-bottom:1rem}
+.about-hero h1 em{font-style:italic;color:var(--rose-light)}
+.about-hero p{color:rgba(255,255,255,0.75);font-size:0.9rem;line-height:1.9}
+.about-values{padding:5rem 5%;background:var(--warm)}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem}
+.value-card{background:white;padding:2.5rem 2rem;text-align:center}
+.value-icon{font-size:2.5rem;margin-bottom:1rem}
+.value-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--rose-deep);margin-bottom:0.7rem}
+.value-text{font-size:0.82rem;color:var(--text-muted);line-height:1.7}
+.about-story{padding:5rem 8%;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.about-story h2{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3vw,2.8rem);font-weight:300;color:var(--rose-deep);margin-bottom:1.5rem}
+.about-story p{font-size:0.88rem;color:var(--text-muted);line-height:1.9;margin-bottom:1rem}
+.story-visual{background:linear-gradient(135deg,#FCE4EC,#F3D5E0);padding:3rem;text-align:center;font-size:6rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--rose-deep);color:white;padding:1rem 1.5rem;font-size:0.8rem;letter-spacing:0.1em;opacity:0;transition:all 0.4s;z-index:999;transform:translateY(10px)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* CHECKOUT MODAL */
+.overlay{position:fixed;inset:0;background:rgba(44,24,16,0.6);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:white;padding:3rem;max-width:500px;width:90%;position:relative}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--rose-deep);margin-bottom:0.5rem}
+.modal p{font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.4rem}
+.form-group input{width:100%;border:1px solid rgba(194,24,91,0.2);padding:0.7rem;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;transition:border 0.3s}
+.form-group input:focus{border-color:var(--rose)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted)}
+.success-msg{text-align:center;padding:2rem 0}
+.success-icon{font-size:4rem;margin-bottom:1rem}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links,.nav-cart{display:none}
+  .hamburger{display:flex}
+  .hero{grid-template-columns:1fr}
+  .hero-right{min-height:280px;padding:2rem}
+  .hero-left{padding:2.5rem 5%}
+  .hero-visual{width:55%;max-width:220px}
+  .hero-float{display:none}
+  .categories-grid{grid-template-columns:repeat(2,1fr)}
+  .products-grid,.shop-grid{grid-template-columns:repeat(2,1fr);gap:1rem}
+  .product-img{height:180px}
+  .product-info{padding:0.8rem}
+  .bestseller-banner{grid-template-columns:1fr;gap:2rem;padding:3rem 5%}
+  .testimonials-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .detail-wrap{grid-template-columns:1fr;gap:2rem}
+  .about-hero,.about-story{grid-template-columns:1fr;gap:2rem}
+  .values-grid{grid-template-columns:1fr}
+  .bs-stats{grid-template-columns:1fr 1fr}
+  .features-strip{gap:1.5rem}
+  .shop-controls{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:480px){
+  .products-grid,.shop-grid{grid-template-columns:1fr}
+  .categories-grid{grid-template-columns:repeat(2,1fr)}
+  .cart-item{grid-template-columns:60px 1fr}
+  .cart-item-price{grid-column:1/-1;padding-left:72px}
 }
 
-.logo-container img {
-  height: 180px; 
-  width: auto;   
-}
-
-.logo-container span {
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-}
-
-
-  /* -------- Body & Fonts -------- */
-  body { margin:0; font-family: Arial, sans-serif; background: linear-gradient(135deg,#f0f4ff,#e0ebff); color:#222; }
-  h1,h2,h3{ margin:0; }
-  p, .muted{ margin:0; color:#555; }
-
-  /* -------- Header -------- */
-  header { background:#0b1d4d; color:#fff; padding:1px 1px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-  header img { height:36px; vertical-align:middle; margin-right:40px; }
-  nav{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:1px; }
-  nav button{ background:transparent; color:white; border:none; padding:10px 18px; cursor:pointer; border-radius:8px; font-weight:600; transition:0.3s; }
-  nav button.active, nav button:hover{ background:rgba(255,255,255,0.15); }
-
-  /* -------- Container -------- */
-  .container{ max-width:1100px; margin:18px auto; padding:10px; }
-
-  /* -------- Map -------- */
-  #map, #map2{ height:420px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.15); }
-
-  /* -------- Status -------- */
-  .status{ display:flex; gap:12px; margin-top:16px; background:rgba(255,255,255,0.95); padding:14px; border-radius:10px; align-items:center; justify-content:space-between; }
-  .status .block{ flex:1; text-align:center; }
-  .heart{ font-size:28px; animation:pulse 2s infinite; color:#d63031; }
-  @keyframes pulse{ 0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);} }
-
-  /* -------- Buttons -------- */
-  .controls{text-align:center; margin-top:14px;}
-  .btn{ background:#1e3a8a; color:#fff; border:none; padding:10px 20px; border-radius:24px; cursor:pointer; margin:6px; font-weight:600; transition:0.3s; }
-  .btn:hover{ background:#374ac0; transform:scale(1.05); }
-
-  /* -------- Lists -------- */
-  .hospital-list{ margin-top:14px; background:#fff; padding:12px; border-radius:10px; max-height:260px; overflow:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08); }
-  .hospital-item{ padding:10px; border-bottom:1px solid #eee; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
-  .hospital-item:hover{ background:#f0f4ff; }
-
-  /* -------- Alerts -------- */
-  .alert{ display:none; margin-top:12px; background:#ff4d6d; color:#fff; padding:10px; border-radius:8px; text-align:center; }
-
-  /* -------- Forms & Cards -------- */
-  .card{ background:#fff; padding:14px; margin:10px 0; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
-  input, select, textarea{ width:100%; padding:10px; margin:6px 0; border:1px solid #ccc; border-radius:8px; }
-
-  /* -------- Responsive -------- */
-  @media (max-width:720px){ #map,#map2{ height:320px; } .status{ flex-direction:column; gap:8px; } nav{ gap:6px; } }
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.7s ease forwards}
+.delay-1{animation-delay:0.1s}
+.delay-2{animation-delay:0.2s}
+.delay-3{animation-delay:0.3s}
 </style>
 </head>
 <body>
 
-<header>
-   <div class="logo-container">
-    <img src="2_20251030_082948_0001-removebg-preview.png" alt="Logo">
-    <span>AED & Rescue Hub</span>
-  </div>
-  <nav>
-    <button id="nav-home" class="active">Home</button>
-    <button id="nav-map">Map</button>
-    <button id="nav-register">Register Place</button>
-    <button id="nav-training">Training</button>
-    <button id="nav-ring">Life Ring</button>
-    <button id="nav-store">Store</button>
-    <button id="nav-donate">Donate</button>
-    <button id="nav-events">Events</button>
-  </nav>
-</header>
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#" onclick="showPage('home')">Glow <span>&</span> Co</a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('home')">Home</a></li>
+    <li><a href="#" onclick="showPage('shop')">Shop</a></li>
+    <li><a href="#" onclick="showPage('about')">About</a></li>
+  </ul>
+  <button class="nav-cart" onclick="showPage('cart')">
+    Bag <span class="cart-count" id="cartCount">0</span>
+  </button>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
 
-<div class="container">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
- 
-  <div id="home" class="page" style="display:block;">
-    <p class="muted">Find nearest AEDs, check your heart rate, and connect your smart ring.</p>
-    <div id="map"></div>
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-
-<div class="status">
-  
-  <div class="block">
-    <i class="fas fa-heart" style="color:rgb(15, 23, 97); font-size:28px;"></i>
-    <div>Heart Rate: <strong id="hr-display">72 BPM</strong></div>
-  </div>
-
-  
-<div class="block">
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <circle cx="12" cy="12" r="4"/>
-  </svg>
-  <div>Ring: <strong id="ring-display">Disconnected</strong></div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#" onclick="showPage('home');toggleMenu()">Home</a>
+  <a href="#" onclick="showPage('shop');toggleMenu()">Shop</a>
+  <a href="#" onclick="showPage('about');toggleMenu()">About</a>
+  <a href="#" onclick="showPage('cart');toggleMenu()">Bag (<span id="mobileCartCount">0</span>)</a>
 </div>
 
-  
-  <div class="block">
-    <i class="fas fa-map-marker-alt" style="color:rgb(23, 15, 71); font-size:28px;"></i>
-    <div>Your Location: <span id="loc-display" class="muted">Unknown</span></div>
+<!-- ══ HOME ══ -->
+<div id="home" class="page active">
+
+  <section class="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow fade-up">Luxury Relaxation Collection</p>
+      <h1 class="hero-title fade-up delay-1">Ritual.<br>Restore.<br><em>Glow.</em></h1>
+      <p class="hero-sub fade-up delay-2">Curated skincare and relaxation essentials crafted for the modern woman. Indulge in moments of pure self-care.</p>
+      <div class="hero-actions fade-up delay-3">
+        <button class="btn-primary" onclick="showPage('shop')">Shop Now</button>
+        <button class="btn-outline" onclick="showPage('about')">Our Story</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-visual">
+        <div class="hero-visual-inner">
+          <div class="hero-icon">🌸</div>
+          <h3>Vitamin C Serum</h3>
+          <p>Bestseller · 19.5 JD</p>
+        </div>
+      </div>
+      <div class="hero-float hero-float-1">
+        <span>Top rated</span>
+        <strong>★ 4.9</strong>
+        <span>by 900+ customers</span>
+      </div>
+      <div class="hero-float hero-float-2">
+        <strong>Free Delivery</strong>
+        <span>on orders over 30 JD</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="features-strip">
+    <div class="feature-item">✦ Free delivery over 30 JD</div>
+    <div class="feature-item">✦ Natural ingredients</div>
+    <div class="feature-item">✦ Cruelty free</div>
+    <div class="feature-item">✦ Luxury packaging</div>
+  </div>
+
+  <section class="section">
+    <div class="section-header">
+      <p class="section-eyebrow">Browse by</p>
+      <h2 class="section-title">Our <em>Collections</em></h2>
+    </div>
+    <div class="categories-grid">
+      <div class="cat-card" onclick="filterCategory('Skincare')">
+        <div class="cat-icon">✨</div>
+        <div class="cat-name">Skincare</div>
+        <div class="cat-count">Serums & Treatments</div>
+      </div>
+      <div class="cat-card" onclick="filterCategory('Scrubs & Creams')">
+        <div class="cat-icon">🌿</div>
+        <div class="cat-name">Scrubs & Creams</div>
+        <div class="cat-count">Exfoliate & Nourish</div>
+      </div>
+      <div class="cat-card" onclick="filterCategory('Oils & Perfumes')">
+        <div class="cat-icon">🫧</div>
+        <div class="cat-name">Oils & Perfumes</div>
+        <div class="cat-count">Scents & Serums</div>
+      </div>
+      <div class="cat-card" onclick="filterCategory('Bath Tools')">
+        <div class="cat-icon">🛁</div>
+        <div class="cat-name">Bath Tools</div>
+        <div class="cat-count">Relax & Restore</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:white;padding-top:4rem">
+    <div class="section-header">
+      <p class="section-eyebrow">Most loved</p>
+      <h2 class="section-title">Featured <em>Products</em></h2>
+    </div>
+    <div class="products-grid" id="featuredGrid"></div>
+  </section>
+
+  <section class="bestseller-banner">
+    <div class="bs-text">
+      <h2>Our #1<br><em>Bestseller</em></h2>
+      <p>Vitamin C Serum — the glow-boosting formula loved by over 900 customers. Brightens, hydrates, and transforms your skin in just 2 weeks.</p>
+      <button class="btn-white" onclick="openProduct(0)">Shop Serum →</button>
+    </div>
+    <div class="bs-stats">
+      <div class="bs-stat"><strong>1,084</strong><span>Orders in 2024</span></div>
+      <div class="bs-stat"><strong>84%</strong><span>Female customers</span></div>
+      <div class="bs-stat"><strong>4.9★</strong><span>Average rating</span></div>
+      <div class="bs-stat"><strong>9,477 JD</strong><span>Serum revenue</span></div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <div class="section-header">
+      <p class="section-eyebrow">Real reviews</p>
+      <h2 class="section-title">What They <em>Say</em></h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">The Vitamin C Serum completely transformed my skin. I've never felt more confident without makeup. Worth every dinar!</p>
+        <p class="testi-author">Reem Hamdan — Amman</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">The Luxury Bath Set is my weekly ritual now. The packaging alone is worth it — feels like a gift every single time.</p>
+        <p class="testi-author">Sarah Johnson — Irbid</p>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">Ordered the Argan Oil and the Rose Moisturizer together. My skin has never looked better. Glow & Co is my go-to now.</p>
+        <p class="testi-author">Tala Abdullah — Zarqa</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">Glow <span>&</span> Co</div>
+        <p class="footer-tagline">Luxury relaxation products crafted for the modern woman. Because you deserve to glow every single day.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a onclick="filterCategory('Skincare')">Skincare</a></li>
+          <li><a onclick="filterCategory('Scrubs & Creams')">Scrubs & Creams</a></li>
+          <li><a onclick="filterCategory('Oils & Perfumes')">Oils & Perfumes</a></li>
+          <li><a onclick="filterCategory('Bath Tools')">Bath Tools</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Info</h4>
+        <ul>
+          <li><a onclick="showPage('about')">About Us</a></li>
+          <li><a>Shipping Policy</a></li>
+          <li><a>Returns</a></li>
+          <li><a>Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 Glow & Co. All rights reserved.</span>
+      <span>Made with ♡ for every woman</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ══ SHOP ══ -->
+<div id="shop" class="page">
+  <div class="shop-hero">
+    <h1>The Collection</h1>
+    <p>Discover your perfect relaxation ritual</p>
+  </div>
+  <div class="shop-controls">
+    <div class="filter-group" id="filterBtns">
+      <button class="filter-btn active" onclick="setFilter('All',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('Skincare',this)">Skincare</button>
+      <button class="filter-btn" onclick="setFilter('Scrubs & Creams',this)">Scrubs & Creams</button>
+      <button class="filter-btn" onclick="setFilter('Oils & Perfumes',this)">Oils & Perfumes</button>
+      <button class="filter-btn" onclick="setFilter('Bath Tools',this)">Bath Tools</button>
+    </div>
+    <select class="sort-select" onchange="sortProducts(this.value)">
+      <option value="default">Sort: Featured</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+      <option value="name">Name: A-Z</option>
+    </select>
+  </div>
+  <div class="shop-grid" id="shopGrid"></div>
+  <div style="height:3rem"></div>
+</div>
+
+<!-- ══ PRODUCT DETAIL ══ -->
+<div id="product-detail" class="page">
+  <div class="detail-wrap">
+    <div>
+      <div class="detail-img" id="detailImg"></div>
+    </div>
+    <div class="detail-info">
+      <p class="detail-cat" id="detailCat"></p>
+      <h1 class="detail-name" id="detailName"></h1>
+      <p class="detail-price" id="detailPrice"></p>
+      <p class="detail-desc" id="detailDesc"></p>
+      <div class="qty-wrap">
+        <span class="qty-label">Quantity</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="qtyNum">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <button class="detail-add" onclick="addFromDetail()">Add to Bag</button>
+      <button class="detail-back" onclick="goBack()">← Continue Shopping</button>
+      <div class="detail-tags" id="detailTags"></div>
+    </div>
   </div>
 </div>
 
+<!-- ══ CART ══ -->
+<div id="cart" class="page">
+  <div class="cart-wrap">
+    <h1 class="cart-title">Your Bag</h1>
+    <div id="cartContent"></div>
+  </div>
+</div>
 
-    <div class="controls">
-      <button id="connect-ring" class="btn">🔗 Connect Ring (simulate)</button>
-      <button id="emergency-call" class="btn">🚨 Confirm & Call Ambulance (simulate)</button>
+<!-- ══ ABOUT ══ -->
+<div id="about" class="page">
+  <div class="about-hero">
+    <div>
+      <h1>Born from a love of <em>ritual</em></h1>
+      <p>Glow & Co was created for women who believe self-care isn't a luxury — it's a necessity. Every product is thoughtfully selected to bring you moments of pure indulgence.</p>
     </div>
-
-    <div id="alert-msg" class="alert">Alert! Calling ambulance... (simulated)</div>
-
-    <div class="hospital-list" id="hospital-list"></div>
+    <div style="text-align:center;font-size:7rem">🌸</div>
   </div>
-
-  <!-- ===== Map Page ===== -->
-  <div id="map-page" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Interactive Map</h2>
-    <div id="map2"></div>
-  </div>
-
-  <!-- ===== Register Place ===== -->
-  <div id="register" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Register Your Place</h2>
-    <div class="card">
-      <input type="text" placeholder="Place Name">
-      <input type="text" placeholder="Address / Location">
-      <input type="tel" placeholder="Contact Number">
-      <select>
-        <option value="">Type of Place</option>
-        <option>Clinic</option>
-        <option>School</option>
-        <option>Community Center</option>
-        <option>Other</option>
-      </select>
-      <button class="btn">Submit</button>
+  <div class="about-values">
+    <div class="section-header">
+      <p class="section-eyebrow">What we stand for</p>
+      <h2 class="section-title">Our <em>Values</em></h2>
     </div>
-  </div>
-
-  <!-- ===== Training ===== -->
-  <div id="training" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Training & Awards</h2>
-    <div class="card"><strong>CPR & Rescue Training</strong><p>Sign up for basic life support courses.</p><button class="btn">Register</button></div>
-    <div class="card"><strong>Coach Rescue Diploma</strong><p>Professional rescue coaching program.</p><button class="btn">Enroll</button></div>
-    <div class="card"><strong>First Rescuer Award</strong><p>Recognition for heroism and lifesaving actions.</p><button class="btn">Apply</button></div>
-  </div>
-
-  <!-- ===== Life Ring ===== -->
-  <div id="ring" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Life Ring</h2>
-    <div class="card">
-      <p>Connect your smart ring to monitor heart rate and trigger emergency alerts.</p>
-      <button id="connect-ring2" class="btn">Connect Ring</button>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">🌿</div>
+        <h3 class="value-title">Natural Ingredients</h3>
+        <p class="value-text">Every product is formulated with the finest natural ingredients sourced from around the world. No harmful chemicals, ever.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">💝</div>
+        <h3 class="value-title">Made for Women</h3>
+        <p class="value-text">Designed with the modern woman in mind. Our products fit seamlessly into your daily ritual, from morning routines to evening wind-downs.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">✨</div>
+        <h3 class="value-title">Luxury Experience</h3>
+        <p class="value-text">From packaging to product, every detail is crafted to make you feel special. Because you deserve the very best.</p>
+      </div>
     </div>
   </div>
-
-  <!-- ===== Store ===== -->
-  <div id="store" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Store - AED & Accessories</h2>
-    <div class="card"><strong>AED Device</strong><p>Portable life-saving device.</p><button class="btn">Buy</button></div>
-    <div class="card"><strong>Accessories Kit</strong><p>Replacement pads, batteries, bag.</p><button class="btn">Buy</button></div>
-    <div class="card"><strong>First Aid Kit</strong><p>Complete emergency kit.</p><button class="btn">Buy</button></div>
+  <div class="about-story">
+    <div>
+      <h2>A ritual worth celebrating</h2>
+      <p>Glow & Co started with a simple belief: every woman deserves a moment of luxury in her day. We handpick every product in our collection — from silky serums to indulgent bath rituals — to help you slow down, breathe, and glow.</p>
+      <p>Our bestselling Vitamin C Serum has become a staple in thousands of routines across Jordan and beyond. We're proud to serve a community of women who choose to invest in themselves.</p>
+      <button class="btn-primary" style="margin-top:1.5rem" onclick="showPage('shop')">Explore the Collection</button>
+    </div>
+    <div class="story-visual">🧴</div>
   </div>
+</div>
 
-  <!-- ===== Donate ===== -->
-  <div id="donate" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Donate</h2>
-    <div class="card"><strong>Orphanages</strong><button class="btn">Donate</button></div>
-    <div class="card"><strong>Schools</strong><button class="btn">Donate</button></div>
-    <div class="card"><strong>Senior Homes</strong><button class="btn">Donate</button></div>
-    <div class="card"><strong>Camps & Gaza</strong><button class="btn">Donate</button></div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CHECKOUT MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
   </div>
-
-  <!-- ===== Events ===== -->
-  <div id="events" class="page" style="display:none;">
-    <h2 style="color:#0b1d4d">Events & Webinars</h2>
-    <div class="card"><strong>Online Webinar</strong><p>Learn CPR & AED basics online.</p><button class="btn">Register</button></div>
-    <div class="card"><strong>Medical Day</strong><p>Free medical checkups and awareness.</p><button class="btn">Join</button></div>
-    <div class="card"><strong>Free Training</strong><p>Hands-on CPR and first aid training.</p><button class="btn">Sign Up</button></div>
-  </div>
-
 </div>
 
 <script>
-/* ---------- Fake AED Data ---------- */
-const aedLocations = [
-  { id:1, name: "AED - Abdali Mall", lat:31.9474, lng:35.9230 },
-  { id:2, name: "AED - Tla' Al Ali Clinic", lat:31.9530, lng:35.8830 },
-  { id:3, name: "AED - Jabal Amman Center", lat:31.9498, lng:35.9400 },
-  { id:4, name: "AED - Sweifieh Plaza", lat:31.9490, lng:35.8765 },
-  { id:5, name: "AED - Marka Community Ctr", lat:32.0010, lng:36.0380 },
-  { id:6, name: "AED - West Amman Market", lat:31.9605, lng:35.8862 },
-  { id:7, name: "AED - University Campus", lat:31.9522, lng:35.9108 },
-  { id:8, name: "AED - City Hospital", lat:31.9556, lng:35.9235 },
-  { id:9, name: "AED - Zahran Mall", lat:31.9680, lng:35.9115 },
-  { id:10, name: "AED - Community Center C", lat:31.9620, lng:35.9100 }
+const products = [
+  {id:0,name:"Vitamin C Serum",cat:"Skincare",price:19.5,icon:"✨",desc:"Brightening serum with Vitamin C for glowing skin. Clinically proven to reduce dark spots and even skin tone in 2 weeks. Lightweight formula absorbs instantly.",tags:["Bestseller","Brightening","Anti-aging"],badge:"Bestseller"},
+  {id:1,name:"Lavender Body Scrub",cat:"Scrubs & Creams",price:8.5,icon:"🌿",desc:"Natural scrub with lavender oil for silky-smooth skin. Gently exfoliates while the lavender calms your senses. Perfect for your weekly ritual.",tags:["Natural","Relaxing","Exfoliating"]},
+  {id:2,name:"Rose Moisturizer Cream",cat:"Scrubs & Creams",price:12.0,icon:"🌹",desc:"Luxury moisturizer with Damascus rose extract. Deep hydration that lasts all day. Leaves skin soft, plump, and delicately scented.",tags:["Hydrating","Rose","Luxury"]},
+  {id:3,name:"Argan Oil",cat:"Oils & Perfumes",price:15.0,icon:"🫙",desc:"100% Moroccan argan oil for hair and body. The liquid gold of skincare — rich in vitamin E and fatty acids for ultimate nourishment.",tags:["Pure","Multi-use","Nourishing"]},
+  {id:4,name:"Relaxing Stone Set",cat:"Bath Tools",price:22.0,icon:"🪨",desc:"Volcanic stone massage set for deep relaxation. Includes 6 smooth stones designed to release tension and improve circulation.",tags:["Relaxation","Massage","Self-care"]},
+  {id:5,name:"Luxury Candle",cat:"Oils & Perfumes",price:18.0,icon:"🕯️",desc:"Premium scented candle with unique aromas. 40-hour burn time. Sets the perfect ambiance for your self-care rituals.",tags:["Ambiance","Scented","Luxury"],badge:"New"},
+  {id:6,name:"Natural Loofah",cat:"Bath Tools",price:5.0,icon:"🫧",desc:"Sustainable natural loofah for daily exfoliation. 100% plant-based and biodegradable. Gently removes dead skin while you shower.",tags:["Eco-friendly","Daily","Natural"]},
+  {id:7,name:"Wooden Massage Brush",cat:"Bath Tools",price:9.5,icon:"🪥",desc:"Natural wooden brush to boost blood circulation. Dry brushing before your shower stimulates lymphatic flow and leaves skin glowing.",tags:["Circulation","Dry brushing","Wellness"]},
+  {id:8,name:"Coconut Oil",cat:"Oils & Perfumes",price:11.0,icon:"🥥",desc:"Organic multi-purpose coconut oil. Use as a makeup remover, hair mask, or body moisturizer. A true beauty staple.",tags:["Organic","Multi-use","Natural"]},
+  {id:9,name:"Honey Face Mask",cat:"Scrubs & Creams",price:7.5,icon:"🍯",desc:"Deep hydrating honey face mask. 15-minute treatment that plumps, brightens, and soothes irritated skin.",tags:["Hydrating","Brightening","Soothing"]},
+  {id:10,name:"Grape Seed Oil",cat:"Oils & Perfumes",price:13.5,icon:"🍇",desc:"Lightweight grape seed oil for deep moisturizing. Rich in antioxidants and linoleic acid. Perfect for all skin types.",tags:["Lightweight","Antioxidant","All skin types"]},
+  {id:11,name:"Luxury Bath Set",cat:"Bath Tools",price:28.0,icon:"🛁",desc:"Complete luxury bath set — the ultimate self-care gift. Includes loofah, bath salts, candle, and shower gel in beautiful packaging.",tags:["Gift set","Complete","Luxury"],badge:"Gift"},
+  {id:12,name:"Rose Water Spray",cat:"Oils & Perfumes",price:14.0,icon:"💧",desc:"Soothing and hydrating rose water spray. Refresh your face throughout the day or set your makeup. 100% pure rose water.",tags:["Refreshing","Setting spray","Pure"]},
+  {id:13,name:"Foot Repair Cream",cat:"Scrubs & Creams",price:9.0,icon:"🦶",desc:"Repairing foot moisturizer cream. Intensive formula with shea butter and urea to soften even the driest heels overnight.",tags:["Intensive","Healing","Overnight"]},
+  {id:14,name:"Natural Pumice Stone",cat:"Bath Tools",price:6.5,icon:"🪨",desc:"Natural pumice stone for dead skin removal. Gently buffs away calluses and rough patches for silky smooth feet and hands.",tags:["Natural","Exfoliating","Feet care"]},
 ];
 
-/* ---------- Haversine Formula ---------- */
-function haversineKm(lat1, lon1, lat2, lon2) {
-  function toRad(deg){ return deg * Math.PI / 180; }
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
+let cart = [];
+let currentFilter = 'All';
+let currentSort = 'default';
+let currentProductId = null;
+let detailQty = 1;
+let previousPage = 'shop';
+
+function getFilteredSorted(){
+  let list = currentFilter==='All' ? [...products] : products.filter(p=>p.cat===currentFilter);
+  if(currentSort==='price-low') list.sort((a,b)=>a.price-b.price);
+  else if(currentSort==='price-high') list.sort((a,b)=>b.price-a.price);
+  else if(currentSort==='name') list.sort((a,b)=>a.name.localeCompare(b.name));
+  return list;
 }
 
-/* ---------- Map Initialization ---------- */
-let map;
-function initMap(mapId='map') {
-  const container = document.getElementById(mapId);
-  if (container._leaflet_id) return;
-  const center = [31.9539, 35.9106];
-  const m = L.map(mapId).setView(center,12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'© OpenStreetMap contributors'}).addTo(m);
-
-  const aedIcon = L.divIcon({ html:'<div style="background:#1e3a8a;color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;font-size:12px;">AED</div>', className:'', iconSize:[40,20], iconAnchor:[20,10] });
-
-  aedLocations.forEach(loc=>{
-    const marker = L.marker([loc.lat, loc.lng], {icon:aedIcon}).addTo(m);
-    marker.bindPopup(`<strong>${loc.name}</strong>`);
-    loc._marker = marker;
-  });
-
-  map = m;
-}
-initMap('map');
-initMap('map2');
-
-/* ---------- Geolocation & Lists ---------- */
-let userPos = null;
-function updateUserLocationDisplay(lat,lng){ document.getElementById('loc-display').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
-
-function getUserLocationAndPopulate() {
-  if (!navigator.geolocation){ populateLists(null); return; }
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    updateUserLocationDisplay(userPos.lat,userPos.lng);
-    if(map){
-      if(!window._userMarker){ window._userMarker=L.marker([userPos.lat,userPos.lng],{title:"You"}).addTo(map).bindPopup("Your Location"); }
-      else window._userMarker.setLatLng([userPos.lat,userPos.lng]);
-      map.setView([userPos.lat,userPos.lng],13);
-    }
-    populateLists(userPos);
-  }, err=>{ populateLists(null); }, {enableHighAccuracy:true, timeout:8000});
+function productCard(p, featured=false){
+  return `<div class="product-card" onclick="openProduct(${p.id})">
+    <div class="product-img">
+      ${p.badge?`<span class="product-badge ${p.badge==='New'?'new':''}">${p.badge}</span>`:''}
+      <span class="product-img-icon">${p.icon}</span>
+    </div>
+    <div class="product-info">
+      <p class="product-cat">${p.cat}</p>
+      <h3 class="product-name">${p.name}</h3>
+      <p class="product-desc">${p.desc.substring(0,65)}...</p>
+      <div class="product-footer">
+        <span class="product-price">${p.price.toFixed(2)} <span>JD</span></span>
+        <button class="add-btn" onclick="event.stopPropagation();addToCart(${p.id})">Add +</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-function populateLists(user){
-  const list1 = document.getElementById('hospital-list'); list1.innerHTML='';
-  const enriched = aedLocations.map(loc=>{
-    let distKm=null;
-    if(user) distKm = haversineKm(user.lat,user.lng,loc.lat,loc.lng);
-    const distMiles = distKm!=null?distKm*0.621371:null;
-    const walkingMin = distKm!=null?(distKm/5)*60:null;
-    const drivingMin = distKm!=null?(distKm/40)*60:null;
-    return {...loc,distKm,distMiles,walkingMin,drivingMin};
-  });
-  enriched.sort((a,b)=>{ if(a.distKm===null)return 1; if(b.distKm===null)return -1; return a.distKm-b.distKm; });
-  enriched.forEach(loc=>{
-    const distText = loc.distMiles!=null?`${loc.distMiles.toFixed(2)} miles`:'Distance unavailable';
-    const etaText = loc.walkingMin!=null?`Walk: ${Math.round(loc.walkingMin)} min • Drive: ${Math.round(loc.drivingMin)} min`:'';
-    const item = document.createElement('div');
-    item.className='hospital-item';
-    item.innerHTML=`<div><strong>${loc.name}</strong><div class="muted">${distText}</div></div>
-                    <div style="text-align:right"><div class="muted" style="font-size:13px">${etaText}</div>
-                    <div style="font-size:12px; margin-top:6px; color:#1e3a8a">Go</div></div>`;
-    item.addEventListener('click',()=>{
-      document.getElementById('nav-home').click();
-      if(map && loc._marker){
-        map.flyTo([loc.lat,loc.lng],16,{duration:1.6});
-        loc._marker.openPopup();
-        const popupHtml=`<strong>${loc.name}</strong><br>${distText}<br>${etaText}`;
-        loc._marker.setPopupContent(popupHtml).openPopup();
-      }
-    });
-    list1.appendChild(item);
-  });
+function renderFeatured(){
+  const featured = [0,4,11,3,5,2];
+  document.getElementById('featuredGrid').innerHTML = featured.map(i=>productCard(products[i],true)).join('');
 }
 
-/* ---------- Heart Rate Simulation ---------- */
-let hr=72;
-setInterval(()=>{
-  hr+=(Math.random()*8-4);
-  hr=Math.max(45,Math.min(140,hr));
-  document.getElementById('hr-display').textContent=Math.round(hr)+' BPM';
-  if(hr>130||hr<45){ document.getElementById('alert-msg').textContent='Warning: Abnormal heart rate detected (simulated)'; document.getElementById('alert-msg').style.display='block'; }
-  else{ document.getElementById('alert-msg').style.display='none'; document.getElementById('alert-msg').textContent='Alert! Calling ambulance... (simulated)'; }
-},2000);
+function renderShop(){
+  document.getElementById('shopGrid').innerHTML = getFilteredSorted().map(p=>productCard(p)).join('');
+}
 
-/* ---------- Buttons ---------- */
-document.getElementById('connect-ring').addEventListener('click',()=>{
-  document.getElementById('ring-display').textContent='Connected (simulated)';
-  alert('Ring connected (simulated). Heart-rate now comes from simulated sensor.');
-});
-document.getElementById('connect-ring2').addEventListener('click',()=>{
-  document.getElementById('ring-display').textContent='Connected (simulated)';
-  alert('Ring connected (simulated).');
-});
+function setFilter(cat, btn){
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop();
+}
 
-document.getElementById('emergency-call').addEventListener('click',()=>{
-  if(!userPos){ alert('Enable location to allow calling ambulance (simulated).'); return; }
-  document.getElementById('alert-msg').style.display='block';
-  setTimeout(()=>{
-    alert('Ambulance called (simulated). Displaying nearest AED.');
-    const nearest=aedLocations.map(loc=>({...loc,dist:haversineKm(userPos.lat,userPos.lng,loc.lat,loc.lng)})).sort((a,b)=>a.dist-b.dist)[0];
-    if(nearest && nearest._marker){ map.flyTo([nearest.lat,nearest.lng],16); nearest._marker.openPopup(); }
-  },500);
-});
+function filterCategory(cat){
+  currentFilter = cat;
+  showPage('shop');
+}
 
-/* ---------- Navigation ---------- */
-const navButtons = document.querySelectorAll('header nav button');
-const pages = document.querySelectorAll('.page');
-navButtons.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    navButtons.forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const targetId = btn.id.replace('nav-','');
-    pages.forEach(p=>p.style.display=(p.id===targetId?'block':'none'));
-  });
-});
+function sortProducts(val){
+  currentSort = val;
+  renderShop();
+}
 
-/* ---------- Start ---------- */
-getUserLocationAndPopulate();
+function openProduct(id){
+  previousPage = document.querySelector('.page.active').id;
+  currentProductId = id;
+  detailQty = 1;
+  const p = products[id];
+  document.getElementById('detailImg').innerHTML = `<span style="font-size:7rem">${p.icon}</span>`;
+  document.getElementById('detailCat').textContent = p.cat;
+  document.getElementById('detailName').textContent = p.name;
+  document.getElementById('detailPrice').innerHTML = `${p.price.toFixed(2)} <span>JD</span>`;
+  document.getElementById('detailDesc').textContent = p.desc;
+  document.getElementById('qtyNum').textContent = 1;
+  document.getElementById('detailTags').innerHTML = p.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('');
+  showPage('product-detail');
+}
+
+function changeQty(d){
+  detailQty = Math.max(1, detailQty+d);
+  document.getElementById('qtyNum').textContent = detailQty;
+}
+
+function addFromDetail(){
+  const p = products[currentProductId];
+  for(let i=0;i<detailQty;i++) addToCart(currentProductId,false);
+  showToast(`${p.name} added to your bag ✓`);
+  updateCart();
+}
+
+function goBack(){
+  showPage(previousPage==='product-detail'?'shop':previousPage);
+}
+
+function addToCart(id, toast=true){
+  const existing = cart.find(i=>i.id===id);
+  if(existing) existing.qty++;
+  else cart.push({id, qty:1});
+  updateCart();
+  if(toast) showToast(`${products[id].name} added ✓`);
+}
+
+function removeFromCart(id){
+  cart = cart.filter(i=>i.id!==id);
+  updateCart();
+  renderCartPage();
+}
+
+function changeCartQty(id, d){
+  const item = cart.find(i=>i.id===id);
+  if(item){
+    item.qty = Math.max(1, item.qty+d);
+    updateCart();
+    renderCartPage();
+  }
+}
+
+function updateCart(){
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cartCount').textContent = total;
+  document.getElementById('mobileCartCount').textContent = total;
+}
+
+function renderCartPage(){
+  const el = document.getElementById('cartContent');
+  if(cart.length===0){
+    el.innerHTML = `<div class="cart-empty"><div style="font-size:3rem;margin-bottom:1rem">🛁</div><h3>Your bag is empty</h3><p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem">Discover our relaxation collection</p><button class="btn-primary" onclick="showPage('shop')">Shop Now</button></div>`;
+    return;
+  }
+  const subtotal = cart.reduce((s,i)=>s+products[i.id].price*i.qty,0);
+  const delivery = subtotal>=30 ? 0 : 2.5;
+  const total = subtotal+delivery;
+  el.innerHTML = cart.map(item=>{
+    const p = products[item.id];
+    return `<div class="cart-item">
+      <div class="cart-item-img">${p.icon}</div>
+      <div>
+        <p class="cart-item-cat">${p.cat}</p>
+        <p class="cart-item-name">${p.name}</p>
+        <div class="cart-item-controls">
+          <div class="qty-control" style="border:1px solid rgba(194,24,91,0.2)">
+            <button class="qty-btn" onclick="changeCartQty(${item.id},-1)">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="qty-btn" onclick="changeCartQty(${item.id},1)">+</button>
+          </div>
+          <button class="cart-remove" onclick="removeFromCart(${item.id})">Remove</button>
+        </div>
+      </div>
+      <span class="cart-item-price">${(p.price*item.qty).toFixed(2)} JD</span>
+    </div>`;
+  }).join('')+`
+  <div class="cart-summary">
+    <h3>Order Summary</h3>
+    <div class="summary-row"><span>Subtotal</span><span>${subtotal.toFixed(2)} JD</span></div>
+    <div class="summary-row"><span>Delivery</span><span>${delivery===0?'Free':delivery.toFixed(2)+' JD'}</span></div>
+    ${delivery>0?`<div class="summary-row" style="font-size:0.75rem;color:var(--rose)"><span>Add ${(30-subtotal).toFixed(2)} JD more for free delivery</span></div>`:''}
+    <div class="summary-total"><span>Total</span><span>${total.toFixed(2)} JD</span></div>
+    <button class="checkout-btn" onclick="openCheckout()">Proceed to Checkout →</button>
+  </div>`;
+}
+
+function openCheckout(){
+  document.getElementById('modalContent').innerHTML = `
+    <h2>Checkout</h2>
+    <p>Complete your order</p>
+    <div class="form-group"><label>Full Name</label><input type="text" placeholder="Your name"></div>
+    <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="+962 xx xxx xxxx"></div>
+    <div class="form-group"><label>City</label><input type="text" placeholder="Amman, Zarqa..."></div>
+    <div class="form-row">
+      <div class="form-group"><label>Card Number</label><input type="text" placeholder="•••• •••• •••• ••••"></div>
+      <div class="form-group"><label>Expiry</label><input type="text" placeholder="MM/YY"></div>
+    </div>
+    <button class="checkout-btn" onclick="placeOrder()">Place Order →</button>`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function placeOrder(){
+  document.getElementById('modalContent').innerHTML = `
+    <div class="success-msg">
+      <div class="success-icon">🌸</div>
+      <h2 style="margin-bottom:0.5rem">Order Placed!</h2>
+      <p style="color:var(--text-muted);margin-bottom:1.5rem">Thank you for your order. You'll receive a confirmation soon.</p>
+      <button class="btn-primary" onclick="closeModal();cart=[];updateCart();showPage('home')">Continue Shopping</button>
+    </div>`;
+  cart=[];
+  updateCart();
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none'});
+  const target = document.getElementById(id);
+  target.style.display='block';
+  target.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='shop') renderShop();
+  if(id==='cart') renderCartPage();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function toggleMenu(){
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+// init
+document.getElementById('home').style.display='block';
+renderFeatured();
 </script>
-
 </body>
 </html>
-
-
